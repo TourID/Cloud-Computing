@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 import h5py
-import numpy as np
 
 app = Flask(__name__)
 
