@@ -6,7 +6,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Path ke file model yang disimpan
-MODEL_PATH = 'model.h5'
+MODEL_PATH = 'best_model.h5'
 
 # Memuat model
 model = load_model(MODEL_PATH, compile=False)
