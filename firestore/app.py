@@ -53,6 +53,9 @@ def get_reviews_by_place(place_id):
         reviews_query = reviews_collection_group.where('place_id', '==', place_id).stream()
         
         reviews_data = []
+        total_rating = 0
+        total_reviews = 0
+        
         for review_doc in reviews_query:
            # Get the parent document (user document) reference
             parent_ref = review_doc.reference.parent.parent
@@ -72,7 +75,12 @@ def get_reviews_by_place(place_id):
             
             reviews_data.append(review_data)
         
-        return jsonify({"success": True, "data": reviews_data}), 200
+            total_rating += review_data['rating']
+            total_reviews += 1
+            
+        average_rating = total_rating / total_reviews if total_reviews > 0 else 0
+        
+        return jsonify({"success": True, "data": reviews_data, "average_rating": average_rating}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
