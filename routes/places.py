@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 import pandas as pd
 from config.config import Config
 import urllib.parse
+from routes.reviews import get_reviews, calculate_rating
+from config.gcs import generate_signed_url
 
 places_bp = Blueprint('places', __name__)
 place_data = pd.read_csv(Config.PLACE_DATA_PATH)
@@ -13,16 +15,21 @@ def top_rated():
     response = []
 
     for _, row in top_rated_places.iterrows():
-        place_id = row['Place_Id']
-        place_name = row['Place_Name']
-        city = row['City']
-        rating = row['Rating']
-        encoded_place_name = urllib.parse.quote(place_name)
-        image_url = f'https://storage.googleapis.com/{Config.BUCKET_NAME}/images/{encoded_place_name}.jpg'
+        reviews_data = get_reviews(int(row['Place_Id']))
+        rating = calculate_rating(reviews_data)
+        encoded_place_name = urllib.parse.quote(row['Place_Name'])
+        blob_name = f"images/{row['Place_Name']}.jpg"
+        image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+        # print(f"Blob Name: {blob_name}, Signed URL: {image_url}")
+        # image_url = f'https://storage.googleapis.com/{Config.BUCKET_NAME}/images/{encoded_place_name}.jpg'
         response.append({
-            'Place_Id': place_id,
-            'Place_Name': place_name,
-            'City': city,
+            'Place_Id': int(row['Place_Id']),
+            'Place_Name': row['Place_Name'],
+            'City': row['City'],
+            'Category': row['Category'],
+            'Price': row['Price'],
+            'Latitude': row['Lat'],
+            'Longtitude': row['Long'],
             'Rating': rating,
             'Image_URL': image_url
         })

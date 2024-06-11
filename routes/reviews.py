@@ -7,6 +7,35 @@ reviews_bp = Blueprint('reviews', __name__)
 db = firestore.Client(project=Config.PROJECT, database=Config.DATABASE)
 place_data = pd.read_csv(Config.PLACE_DATA_PATH)
 
+def get_reviews(id):
+    reviews_collection_group = db.collection_group('user_reviews')
+    reviews_query = reviews_collection_group.where('place_id', '==', id).stream()
+    reviews_data = []
+
+    for review_doc in reviews_query:
+        parent_ref = review_doc.reference.parent.parent
+        user_doc = parent_ref.get()
+        user_data = user_doc.to_dict()
+        user_id = parent_ref.id
+        username = user_data.get('username', 'Unknown')
+        review_data = review_doc.to_dict()
+        review_data['user_id'] = user_id
+        review_data['username'] = username
+        reviews_data.append(review_data)
+
+    return reviews_data
+
+
+def calculate_rating(reviews_data):
+    total_rating = 0
+    total_reviews = len(reviews_data)
+
+    for review in reviews_data:
+        total_rating += review['rating']
+
+    average_rating = total_rating / total_reviews if total_reviews > 0 else 0
+    return average_rating
+
 @reviews_bp.route('/destination/<int:id>', methods=['GET'])
 def get_destination_details_with_reviews(id):
     place = place_data[place_data['Place_Id'] == id]
@@ -16,28 +45,11 @@ def get_destination_details_with_reviews(id):
     name = place['Place_Name'].iloc[0]
     description = place['Description'].iloc[0]
     city = place['City'].iloc[0]
-    reviews_collection_group = db.collection_group('user_reviews')
 
     try:
-        reviews_query = reviews_collection_group.where('place_id', '==', id).stream()
-        reviews_data = []
-        total_rating = 0
-        total_reviews = 0
+        reviews_data = get_reviews(id)
+        average_rating = calculate_rating(reviews_data)
 
-        for review_doc in reviews_query:
-            parent_ref = review_doc.reference.parent.parent
-            user_doc = parent_ref.get()
-            user_data = user_doc.to_dict()
-            user_id = parent_ref.id
-            username = user_data.get('username', 'Unknown')
-            review_data = review_doc.to_dict()
-            review_data['user_id'] = user_id
-            review_data['username'] = username
-            reviews_data.append(review_data)
-            total_rating += review_data['rating']
-            total_reviews += 1
-
-        average_rating = total_rating / total_reviews if total_reviews > 0 else 0
         response = {
             'name': name,
             'description': description,
