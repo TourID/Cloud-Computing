@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 import pandas as pd
 from config.config import Config
 import urllib.parse
@@ -39,5 +39,17 @@ def top_rated_by_category(category):
     sorted_places = category_places.sort_values(by='Rating', ascending=False)
     top_rated_places = sorted_places.head(20)
     response = top_rated_places[['Place_Id', 'Place_Name', 'City', 'Rating']].to_dict(orient='records')
+
+    return jsonify(response)
+
+@places_bp.route('/search', methods=['GET'])
+def search_places():
+    query = request.args.get('query', '')
+
+    if not query:
+        return jsonify({'error': 'Query parameter is required'}), 400
+
+    search_results = place_data[place_data['Place_Name'].str.contains(query, case=False, na=False)]
+    response = search_results[['Place_Name', 'Rating', 'City']].to_dict(orient='records')
 
     return jsonify(response)
