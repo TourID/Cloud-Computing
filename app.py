@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 BUCKET_NAME='tourid-bucket'
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "firestore-config.json"
-credentials = storage.Client.from_service_account_json('bucket/bucket-config.json')
+credentials = storage.Client.from_service_account_json('bucket-config.json')
 
 # SERVICE_ACCOUNT_KEY_FILE = 'bucket/bucket-config.json'
 
@@ -117,7 +117,8 @@ def top_rated_by_category(category):
     return jsonify(response)
 
 @app.route('/destination/<int:id>', methods=['GET'])
-def get_destination_details(id):
+def get_destination_details_with_reviews(id):
+    # Assume place_data is a DataFrame loaded with destination details
     # Filter place by ID
     place = place_data[place_data['Place_Id'] == id]
 
@@ -126,43 +127,125 @@ def get_destination_details(id):
 
     # Get details of the destination
     name = place['Place_Name'].iloc[0]
-    rating = place['Rating'].iloc[0]
     description = place['Description'].iloc[0]
     city = place['City'].iloc[0]
 
-    # Prepare the response
-    response = {
-        'name': name,
-        'rating': rating,
-        'description': description,
-        'city': city
-    }
+    reviews_collection_group = db.collection_group('user_reviews')
+    
+    try:
+        # Query reviews collection for documents with place_id
+        reviews_query = reviews_collection_group.where('place_id', '==', id).stream()
+        
+        reviews_data = []
+        total_rating = 0
+        total_reviews = 0
+        
+        for review_doc in reviews_query:
+            # Get the parent document (user document) reference
+            parent_ref = review_doc.reference.parent.parent
+            
+            # Get the user document
+            user_doc = parent_ref.get()
+            user_data = user_doc.to_dict()
+            
+            # Get the user_id and username from the user document
+            user_id = parent_ref.id
+            username = user_data.get('username', 'Unknown')  # Default to 'Unknown' if username is not found
+            
+            # Get the review data
+            review_data = review_doc.to_dict()
+            review_data['user_id'] = user_id
+            review_data['username'] = username
+            
+            reviews_data.append(review_data)
+        
+            total_rating += review_data['rating']
+            total_reviews += 1
+            
+        average_rating = total_rating / total_reviews if total_reviews > 0 else 0
 
-    return jsonify(response)
+        # Prepare the response
+        response = {
+            'name': name,
+            'description': description,
+            'city': city,
+            'rating': average_rating,
+            'reviews': reviews_data
+        }
+        
+        return jsonify(response), 200
+    
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
-@app.route('/reviews/<int:id>', methods=['GET'])
-def get_reviews(id):
-    reviews = []
+@app.route('/add-review', methods=['POST'])
+def add_review():
+    reviews_collection = db.collection('reviews')
+    
+    try:
+        data = request.json
+        user_id = data['user_id']
+        username = data['username']
+        place_id = data['place_id']
+        rating = data['rating']
+        review_text = data['review']
+        
+        # Reference to the user's document
+        user_doc_ref = reviews_collection.document(user_id)
+        new_user_doc = {
+            'username' : username
+        }
+        user_doc_ref.set(new_user_doc)
+        
+        # Create or update the sub-collection for reviews
+        user_reviews_subcollection = user_doc_ref.collection('user_reviews')
+        new_review_data = {
+            'place_id': place_id,
+            'rating': rating,
+            'review': review_text
+        }
+        # Add new review document to the sub-collection with a unique ID
+        user_reviews_subcollection.add(new_review_data)
+        
+        return jsonify({"success": True, "message": "Review added successfully."}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
-    # Query Firestore for all reviews
-    reviews_ref = db.collection('reviews').stream()
+# @app.route('/reviews/<int:id>', methods=['GET'])
+# def get_reviews(id):
+#     reviews = []
 
-    for review_doc in reviews_ref:
-        # Get the username (user_id) from the document ID
-        username = review_doc.id
+#     # Query Firestore for all reviews
+#     reviews_ref = db.collection('reviews').stream()
 
-        # Query the user's reviews
-        user_reviews_ref = db.collection('reviews').document(username).collection('user_reviews').stream()
+#     for review_doc in reviews_ref:
+#         # Get the username (user_id) from the document ID
+#         user_id = review_doc.id
+        
+#          # Get the user document
+#         user_doc = db.collection('reviews').document(user_id).get()
+#         user_data = user_doc.to_dict()
+        
+#         if not user_data:
+#             continue
 
-        for user_review_doc in user_reviews_ref:
-            review_data = user_review_doc.to_dict()
-            if review_data.get('place_id') == id:
-                reviews.append(review_data)
+#         # Get the username from the user document
+#         username = user_data.get('username', 'Unknown')  # Default to 'Unknown' if username is not found
+        
+#         # Query the user's reviews
+#         user_reviews_ref = db.collection('reviews').document(user_id).collection('user_reviews').stream()
 
-    if not reviews:
-        return jsonify({'message': 'There are no reviews yet for this destination.'}), 200
+#         for user_review_doc in user_reviews_ref:
+#             review_data = user_review_doc.to_dict()
+#             if review_data.get('place_id') == id:
+#                 review_data['user_id'] = user_id
+#                 review_data['username'] = username
+#                 reviews.append(review_data)
+                
+#                 total_rating += review_data['rating']
+#                 total_reviews += 1
 
-    return jsonify(reviews)
+#     if not reviews:
+#         return jsonify({'message': 'There are no reviews yet for this destination.', 'average_rating' : '0.0'}), 200
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+#     return jsonify(reviews)
