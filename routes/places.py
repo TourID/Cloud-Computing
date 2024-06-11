@@ -112,8 +112,25 @@ def search_places():
     if not query:
         return jsonify({'error': 'Query parameter is required'}), 400
 
+    response = []
     search_results = place_data[place_data['Place_Name'].str.contains(query, case=False, na=False)]
-    response = search_results[['Place_Name', 'Rating', 'City']].to_dict(orient='records')
+    
+    for _, row in search_results.iterrows():
+        reviews_data = get_reviews(int(row['Place_Id']))
+        rating = calculate_rating(reviews_data)
+            
+        blob_name = f"images/{row['Place_Name']}.jpg"
+        image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+            
+        response.append({
+            'Place_Id': int(row['Place_Id']),
+            'Place_Name': row['Place_Name'],
+            'City': row['City'],
+            'Category': row['Category'],
+            'Rating': rating,
+            'Image_URL': image_url
+        })
+    # response = search_results[['Place_Name', 'Rating', 'City']].to_dict(orient='records')
 
     return jsonify(response)
 
