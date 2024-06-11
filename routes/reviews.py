@@ -36,32 +36,6 @@ def calculate_rating(reviews_data):
     average_rating = total_rating / total_reviews if total_reviews > 0 else 0
     return average_rating
 
-@reviews_bp.route('/destination/<int:id>', methods=['GET'])
-def get_destination_details_with_reviews(id):
-    place = place_data[place_data['Place_Id'] == id]
-    if place.empty:
-        return jsonify({'error': 'Destination not found'}), 404
-
-    name = place['Place_Name'].iloc[0]
-    description = place['Description'].iloc[0]
-    city = place['City'].iloc[0]
-
-    try:
-        reviews_data = get_reviews(id)
-        average_rating = calculate_rating(reviews_data)
-
-        response = {
-            'name': name,
-            'description': description,
-            'city': city,
-            'rating': average_rating,
-            'reviews': reviews_data
-        }
-        return jsonify(response), 200
-
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 400
-
 @reviews_bp.route('/add-review', methods=['POST'])
 def add_review():
     reviews_collection = db.collection('reviews')
