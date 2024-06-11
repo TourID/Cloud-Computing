@@ -1,3 +1,9 @@
-model.h5
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local development files
 myvenv
-firestore/firestore-service-account.json
+config/bucket-config.json
+config/firestore-config.json
