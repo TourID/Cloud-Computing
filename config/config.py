@@ -11,6 +11,6 @@ class Config:
     PLACE_ENCODING_PATH = 'models/place_to_place_encoded.pkl'
     PLACE_DATA_PATH = 'models/place_data.csv'
     GCS_CONFIG_PATH = "config/gcs.py"
-    os.environ["FIRESTORE_CREDENTIALS"] = FIRESTORE_CREDENTIALS
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = FIRESTORE_CREDENTIALS
     os.environ["BUCKET_CREDENTIALS"] = BUCKET_CREDENTIALS
     

@@ -7,3 +7,4 @@ __pycache__/
 myvenv
 config/bucket-config.json
 config/firestore-config.json
+config/.DS_Store
