@@ -9,6 +9,8 @@ from config.gcs import generate_signed_url
 places_bp = Blueprint('places', __name__)
 place_data = pd.read_csv(Config.PLACE_DATA_PATH)
 
+config_instance = Config()
+
 @places_bp.route('/tourism/<category>', methods=['GET'])
 def tourism_by_category(category):
     categories = ['All', 'Budaya', 'Taman Hiburan', 'Cagar Alam', 'Bahari', 'Pusat Perbelanjaan', 'Ibadah']
@@ -30,7 +32,8 @@ def tourism_by_category(category):
             rating = calculate_rating(reviews_data)
             
             blob_name = f"images/{row['Place_Name']}.jpg"
-            image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+            # Replace with your actual bucket name
+            image_url = generate_signed_url(blob_name)
             # print(f"Blob Name: {blob_name}, Signed URL: {image_url}")
             
             response.append({
@@ -54,7 +57,8 @@ def tourism_by_category(category):
             rating = calculate_rating(reviews_data)
             
             blob_name = f"images/{row['Place_Name']}.jpg"
-            image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+            # Replace with your actual bucket name
+            image_url = generate_signed_url(blob_name)
             
             response.append({
                 'Place_Id': int(row['Place_Id']),
@@ -86,7 +90,8 @@ def get_destination_details_with_reviews(id):
         average_rating = calculate_rating(reviews_data)
 
         blob_name = f"images/{name}.jpg"
-        image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+        # Replace with your actual bucket name
+        image_url = generate_signed_url(blob_name)
         
         response = {
             'Place_Name': name,
@@ -120,7 +125,8 @@ def search_places():
         rating = calculate_rating(reviews_data)
             
         blob_name = f"images/{row['Place_Name']}.jpg"
-        image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+        # Replace with your actual bucket name
+        image_url = generate_signed_url(blob_name)
             
         response.append({
             'Place_Id': int(row['Place_Id']),
@@ -146,7 +152,8 @@ def search_places():
 #         rating = calculate_rating(reviews_data)
         
 #         blob_name = f"images/{row['Place_Name']}.jpg"
-#         image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+#         # Replace with your actual bucket name
+#         image_url = generate_signed_url(blob_name)
 #         # print(f"Blob Name: {blob_name}, Signed URL: {image_url}")
         
 #         response.append({
