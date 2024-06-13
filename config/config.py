@@ -1,3 +1,4 @@
+import json
 from google.cloud import secretmanager
 
 class Config:
@@ -16,7 +17,9 @@ class Config:
     def get_secret(secret_name):
         client = secretmanager.SecretManagerServiceClient()
         response = client.access_secret_version(name=secret_name)
-        return response.payload.data.decode('utf-8')
+        secret_string = response.payload.data.decode('utf-8')
+        secret_json = json.loads(secret_string)
+        return secret_json
 
     def get_bucket_credentials(self):
         return self.get_secret(self.BUCKET_SECRET_NAME)
