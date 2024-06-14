@@ -8,7 +8,7 @@ from tensorflow.keras.models import load_model
 
 # Load the trained model from Google Cloud Storage or local path
 def load_model_locally():
-    model = tf.keras.models.load_model(Config.MODEL_PATH, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
+    model = load_model(Config.MODEL_PATH, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
     return model
 
 # Function to load user and place encodings
