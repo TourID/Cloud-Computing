@@ -1,14 +1,16 @@
+from flask import Blueprint, request, jsonify
+import numpy as np
+from models.encodings import user_to_user_encoded, place_to_place_encoded
 import pickle
 import tensorflow as tf
 from config.config import Config
-from flask import Flask, request, jsonify
-import numpy as np
 import pandas as pd
-from tensorflow.keras.models import load_model
+
+model_bp = Blueprint('model', __name__)
 
 # Load the trained model from Google Cloud Storage or local path
 def load_model_locally():
-    model = load_model(Config.MODEL_PATH, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
+    model = tf.keras.models.load_model(Config.MODEL_PATH, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
     return model
 
 # Function to load user and place encodings
@@ -20,11 +22,7 @@ model = load_model_locally()
 user_to_user_encoded = load_encodings(Config.USER_ENCODING_PATH)
 place_to_place_encoded = load_encodings(Config.PLACE_ENCODING_PATH)
 
-app = Flask(__name__)
-
-# model = tf.keras.models.load_model(Config.MODEL_PATH, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
-
-@app.route('/recommend', methods=['POST'])
+@model_bp.route('/recommend', methods=['POST'])
 def recommend():
     data = request.get_json()
     num_users = data['num_users']
@@ -50,5 +48,22 @@ def recommend():
 
     return jsonify(top_recommendations)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# @predict_bp.route('/predict', methods=['POST'])
+# def predict():
+#     data = request.json
+#     user_id = data.get('user_id')
+#     place_id = data.get('place_id')
+
+#     user_encoded = user_to_user_encoded.get(user_id, None)
+#     place_encoded = place_to_place_encoded.get(place_id, None)
+
+#     if user_encoded is None or place_encoded is None:
+#         return jsonify({'error': 'User or Place not found'}), 400
+
+#     user_input = np.array([user_encoded]).reshape(1, -1)
+#     place_input = np.array([place_encoded]).reshape(1, -1)
+
+#     prediction = model.predict([user_input, place_input])
+#     rating = float(prediction[0][0])
+
+#     return jsonify({'rating': rating})
