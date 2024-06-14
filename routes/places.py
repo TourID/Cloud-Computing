@@ -37,12 +37,12 @@ def tourism_by_category(category):
             # print(f"Blob Name: {blob_name}, Signed URL: {image_url}")
             
             response.append({
-                'Place_Id': int(row['Place_Id']),
-                'Place_Name': row['Place_Name'],
-                'City': row['City'],
-                'Category': row['Category'],
-                'Rating': rating,
-                'Image_URL': image_url
+                'placeId': int(row['Place_Id']),
+                'placeName': row['Place_Name'],
+                'city': row['City'],
+                'category': row['Category'],
+                'ratingLoc': rating,
+                'imageUrl': image_url
             })
             
         return jsonify(response)
@@ -61,12 +61,12 @@ def tourism_by_category(category):
             image_url = generate_signed_url(blob_name)
             
             response.append({
-                'Place_Id': int(row['Place_Id']),
-                'Place_Name': row['Place_Name'],
-                'City': row['City'],
-                'Category': row['Category'],
-                'Rating': rating,
-                'Image_URL': image_url
+                'placeId': int(row['Place_Id']),
+                'placeName': row['Place_Name'],
+                'city': row['City'],
+                'category': row['Category'],
+                'ratingLoc': rating,
+                'imageUrl': image_url
             })
 
         return jsonify(response)
@@ -94,16 +94,16 @@ def get_destination_details_with_reviews(id):
         image_url = generate_signed_url(blob_name)
         
         response = {
-            'Place_Name': name,
-            'Description': description,
-            'Category' : category,
-            'City': city,
-            'Price': price,
-            'Latitude' : lat,
-            'Longtitude' : long,
-            'Rating_Location': average_rating,
-            'Reviews': reviews_data,
-            'Image_URL' : image_url
+            'placeName': name,
+            'description': description,
+            'category' : category,
+            'city': city,
+            'price': price,
+            'lat' : lat,
+            'long' : long,
+            'ratingLoc': average_rating,
+            'reviews': reviews_data,
+            'imageUrl' : image_url
         }
         return jsonify(response), 200
 
@@ -112,7 +112,7 @@ def get_destination_details_with_reviews(id):
 
 @places_bp.route('/search', methods=['GET'])
 def search_places():
-    query = request.args.get('query', '')
+    query = request.args.get('q', '')
 
     if not query:
         return jsonify({'error': 'Query parameter is required'}), 400
@@ -129,12 +129,12 @@ def search_places():
         image_url = generate_signed_url(blob_name)
             
         response.append({
-            'Place_Id': int(row['Place_Id']),
-            'Place_Name': row['Place_Name'],
-            'City': row['City'],
-            'Category': row['Category'],
-            'Rating': rating,
-            'Image_URL': image_url
+            'placeId': int(row['Place_Id']),
+            'placeName': row['Place_Name'],
+            'city': row['City'],
+            'category': row['Category'],
+            'ratingLoc': rating,
+            'imageUrl': image_url
         })
     # response = search_results[['Place_Name', 'Rating', 'City']].to_dict(orient='records')
 

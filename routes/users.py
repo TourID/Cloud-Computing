@@ -10,10 +10,10 @@ users_collection = db.collection('users')
 def add_user():
     try:
         data = request.json
-        user_id = data['user_id']
+        userId = data['userId']
         username = data['username']
         email = data['email']
-        user_doc_ref = users_collection.document(user_id)
+        user_doc_ref = users_collection.document(userId)
         new_user_doc = {'username': username, 'email':email}
         user_doc_ref.set(new_user_doc)
         return jsonify({"success": True, "message": "User added successfully."}), 200
@@ -21,10 +21,10 @@ def add_user():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
     
-@users_bp.route('/detail-user/<string:user_id>', methods=['GET'])
-def detail_user(user_id):
+@users_bp.route('/detail-user/<string:userId>', methods=['GET'])
+def detail_user(userId):
     try:
-        user_doc_ref = users_collection.document(user_id)
+        user_doc_ref = users_collection.document(userId)
         user_doc = user_doc_ref.get()
 
         if user_doc.exists:

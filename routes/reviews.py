@@ -19,7 +19,7 @@ def get_reviews(id):
         user_id = parent_ref.id
         username = user_data.get('username', 'Unknown')
         review_data = review_doc.to_dict()
-        review_data['user_id'] = user_id
+        review_data['userId'] = user_id
         review_data['username'] = username
         reviews_data.append(review_data)
 
@@ -41,16 +41,16 @@ def add_review():
     reviews_collection = db.collection('reviews')
     try:
         data = request.json
-        user_id = data['user_id']
+        user_id = data['userId']
         username = data['username']
-        place_id = data['place_id']
+        place_id = data['placeId']
         rating = data['rating']
         review_text = data['review']
         user_doc_ref = reviews_collection.document(user_id)
         new_user_doc = {'username': username}
         user_doc_ref.set(new_user_doc)
         user_reviews_subcollection = user_doc_ref.collection('user_reviews')
-        new_review_data = {'place_id': place_id, 'rating': rating, 'review': review_text}
+        new_review_data = {'placeId': place_id, 'rating': rating, 'review': review_text}
         user_reviews_subcollection.add(new_review_data)
         return jsonify({"success": True, "message": "Review added successfully."}), 200
 
