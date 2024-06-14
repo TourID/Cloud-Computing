@@ -10,7 +10,8 @@ model_bp = Blueprint('model', __name__)
 
 # Load the trained model from Google Cloud Storage or local path
 def load_model_locally():
-    modell = tf.keras.models.load_model(Config.MODEL_PATH, custom_objects={'mse': tf.keras.losses.MeanSquaredError()})
+    modell = tf.keras.models.load_model(Config.MODEL_PATH, custom_objects={'MeanSquaredError': tf.keras.losses.MeanSquaredError})
+    modell.compile(optimizer='adam', loss='mse', metrics=[tf.keras.metrics.MeanSquaredError()])
     return modell
 
 # Function to load user and place encodings
