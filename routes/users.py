@@ -6,34 +6,6 @@ users_bp = Blueprint('users', __name__)
 db = firestore.Client(project=Config.PROJECT, database=Config.DATABASE)
 users_collection = db.collection('users')
 
-@users_bp.route('/add-user', methods=['POST'])
-def add_user():
-    data = request.json
-    try:
-        userId = data.get('userId')
-        email = data.get('email')
-        
-        # Mendapatkan nilai uid_model tertinggi saat ini
-        highest_uid_model = 0
-        users = users_collection.stream()
-        for user in users:
-            user_data = user.to_dict()
-            if 'uid_model' in user_data:
-                highest_uid_model = max(highest_uid_model, user_data['uid_model'])
-        
-        # Meng-increment nilai tertinggi untuk uid_model baru
-        new_uid_model = highest_uid_model + 1
-
-        # Simpan pengguna baru di Firestore
-        db.collection('users').document(userId).set({
-            'email': email,
-            'uid_model': new_uid_model
-        })
-
-        return jsonify({'message': 'User created and data saved in Firestore'}), 201
-    except Exception as e:
-        return jsonify({'message': str(e)}), 400
-
 def get_uid_model(userId):
     try:
         if not userId:
@@ -51,8 +23,40 @@ def get_uid_model(userId):
         else:
             return {'message': 'User not found'}, 404
     except Exception as e:
-        return jsonify({'message': str(e)}), 400
+        return {'message': str(e)}, 400
     
+@users_bp.route('/add-user', methods=['POST'])
+def add_user():
+    data = request.json
+    try:
+        userId = data.get('userId')
+        email = data.get('email')
+        
+        user_doc = users_collection.document(userId).get()
+        if user_doc.exists:
+            return jsonify({'message': 'User ID already exists'}), 400
+        
+        # Mendapatkan nilai uid_model tertinggi saat ini
+        highest_uid_model = 0
+        users = users_collection.stream()
+        for user in users:
+            user_data = user.to_dict()
+            if 'uid_model' in user_data:
+                highest_uid_model = max(highest_uid_model, user_data['uid_model'])
+        
+        # Meng-increment nilai tertinggi untuk uid_model baru
+        new_uid_model = highest_uid_model + 1
+
+        # Simpan pengguna baru di Firestore
+        users_collection.document(userId).set({
+            'email': email,
+            'uid_model': new_uid_model
+        })
+
+        return jsonify({'message': 'User created and data saved in Firestore'}), 201
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
+
 # @users_bp.route('/get-uid-model/<userId>', methods=['GET'])
 # def get_uid_model(userId):
 #     try:
