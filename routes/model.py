@@ -2,7 +2,9 @@ from flask import Blueprint, request, jsonify
 import numpy as np
 from models.encodings import user_to_user_encoded, place_to_place_encoded
 import pickle
-import tensorflow as tf
+# import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.losses import MeanSquaredError
 from config.config import Config
 import pandas as pd
 
@@ -10,8 +12,7 @@ model_bp = Blueprint('model', __name__)
 
 # Load the trained model from Google Cloud Storage or local path
 def load_model_locally():
-    modell = tf.keras.models.load_model(Config.MODEL_PATH, custom_objects={'MeanSquaredError': tf.keras.losses.MeanSquaredError})
-    modell.compile(optimizer='adam', loss='mse', metrics=[tf.keras.metrics.MeanSquaredError()])
+    modell = load_model(Config.MODEL_PATH, custom_objects={'mse': MeanSquaredError()})
     return modell
 
 # Function to load user and place encodings
