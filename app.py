@@ -1,4 +1,5 @@
 from flask import Flask
+from routes.users import users_bp
 from routes.model import model_bp
 from routes.places import places_bp
 from routes.reviews import reviews_bp
@@ -9,6 +10,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # Register blueprints
+app.register_blueprint(users_bp)
 app.register_blueprint(model_bp)
 app.register_blueprint(places_bp)
 app.register_blueprint(reviews_bp)
