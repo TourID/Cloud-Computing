@@ -9,6 +9,34 @@ from config.gcs import generate_signed_url
 places_bp = Blueprint('places', __name__)
 place_data = pd.read_csv(Config.PLACE_DATA_PATH)
 
+config_instance = Config()
+
+def getPlace(id):
+    place = place_data[place_data['Place_Id'] == id]
+    if place.empty:
+        return {'error': 'Destination not found'}, 404
+
+    try:
+        reviews_data = get_reviews(id)
+        average_rating = calculate_rating(reviews_data)
+
+        blob_name = f"images/{place['Place_Name'].iloc[0]}.jpg"
+        # Replace with your actual bucket name
+        image_url = generate_signed_url(blob_name)
+        
+        place_info = {
+            'placeId': id,
+            'placeName': place['Place_Name'].iloc[0],
+            'city': place['City'].iloc[0],
+            'category': place['Category'].iloc[0],
+            'ratingLoc': average_rating,
+            'imageUrl': image_url
+        }
+        return place_info, 200
+
+    except Exception as e:
+        return {"success": False, "message": str(e)}, 400
+    
 @places_bp.route('/tourism/<category>', methods=['GET'])
 def tourism_by_category(category):
     categories = ['All', 'Budaya', 'Taman Hiburan', 'Cagar Alam', 'Bahari', 'Pusat Perbelanjaan', 'Ibadah']
@@ -25,21 +53,24 @@ def tourism_by_category(category):
         place_data_clean['New_Rating'] = place_data_clean['Place_Id'].apply(lambda pid: calculate_rating(get_reviews(int(pid))))
         # Sort places by new rating
         sorted_places = place_data_clean.sort_values(by='New_Rating', ascending=False)
-        for _, row in sorted_places.iterrows():
+        top_rated_places = sorted_places.head(25)
+        
+        for _, row in top_rated_places.iterrows():
             reviews_data = get_reviews(int(row['Place_Id']))
             rating = calculate_rating(reviews_data)
             
             blob_name = f"images/{row['Place_Name']}.jpg"
-            image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+            # Replace with your actual bucket name
+            image_url = generate_signed_url(blob_name)
             # print(f"Blob Name: {blob_name}, Signed URL: {image_url}")
             
             response.append({
-                'Place_Id': int(row['Place_Id']),
-                'Place_Name': row['Place_Name'],
-                'City': row['City'],
-                'Category': row['Category'],
-                'Rating': rating,
-                'Image_URL': image_url
+                'placeId': int(row['Place_Id']),
+                'placeName': row['Place_Name'],
+                'city': row['City'],
+                'category': row['Category'],
+                'ratingLoc': rating,
+                'imageUrl': image_url
             })
             
         return jsonify(response)
@@ -48,21 +79,22 @@ def tourism_by_category(category):
         category_places['New_Rating'] = category_places['Place_Id'].apply(lambda pid: calculate_rating(get_reviews(int(pid))))
         sorted_places = category_places.sort_values(by='New_Rating', ascending=False)
         
-        top_rated_places = sorted_places.head(20)
+        top_rated_places = sorted_places.head(15)
         for _, row in top_rated_places.iterrows():
             reviews_data = get_reviews(int(row['Place_Id']))
             rating = calculate_rating(reviews_data)
             
             blob_name = f"images/{row['Place_Name']}.jpg"
-            image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+            # Replace with your actual bucket name
+            image_url = generate_signed_url(blob_name)
             
             response.append({
-                'Place_Id': int(row['Place_Id']),
-                'Place_Name': row['Place_Name'],
-                'City': row['City'],
-                'Category': row['Category'],
-                'Rating': rating,
-                'Image_URL': image_url
+                'placeId': int(row['Place_Id']),
+                'placeName': row['Place_Name'],
+                'city': row['City'],
+                'category': row['Category'],
+                'ratingLoc': rating,
+                'imageUrl': image_url
             })
 
         return jsonify(response)
@@ -86,19 +118,20 @@ def get_destination_details_with_reviews(id):
         average_rating = calculate_rating(reviews_data)
 
         blob_name = f"images/{name}.jpg"
-        image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+        # Replace with your actual bucket name
+        image_url = generate_signed_url(blob_name)
         
         response = {
-            'Place_Name': name,
-            'Description': description,
-            'Category' : category,
-            'City': city,
-            'Price': price,
-            'Latitude' : lat,
-            'Longtitude' : long,
-            'Rating_Location': average_rating,
-            'Reviews': reviews_data,
-            'Image_URL' : image_url
+            'placeName': name,
+            'description': description,
+            'category' : category,
+            'city': city,
+            'price': price,
+            'lat' : lat,
+            'long' : long,
+            'ratingLoc': average_rating,
+            'reviews': reviews_data,
+            'imageUrl' : image_url
         }
         return jsonify(response), 200
 
@@ -107,7 +140,7 @@ def get_destination_details_with_reviews(id):
 
 @places_bp.route('/search', methods=['GET'])
 def search_places():
-    query = request.args.get('query', '')
+    query = request.args.get('q', '')
 
     if not query:
         return jsonify({'error': 'Query parameter is required'}), 400
@@ -120,15 +153,16 @@ def search_places():
         rating = calculate_rating(reviews_data)
             
         blob_name = f"images/{row['Place_Name']}.jpg"
-        image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+        # Replace with your actual bucket name
+        image_url = generate_signed_url(blob_name)
             
         response.append({
-            'Place_Id': int(row['Place_Id']),
-            'Place_Name': row['Place_Name'],
-            'City': row['City'],
-            'Category': row['Category'],
-            'Rating': rating,
-            'Image_URL': image_url
+            'placeId': int(row['Place_Id']),
+            'placeName': row['Place_Name'],
+            'city': row['City'],
+            'category': row['Category'],
+            'ratingLoc': rating,
+            'imageUrl': image_url
         })
     # response = search_results[['Place_Name', 'Rating', 'City']].to_dict(orient='records')
 
@@ -146,7 +180,8 @@ def search_places():
 #         rating = calculate_rating(reviews_data)
         
 #         blob_name = f"images/{row['Place_Name']}.jpg"
-#         image_url = generate_signed_url(Config.BUCKET_NAME, blob_name)
+#         # Replace with your actual bucket name
+#         image_url = generate_signed_url(blob_name)
 #         # print(f"Blob Name: {blob_name}, Signed URL: {image_url}")
         
 #         response.append({
