@@ -68,3 +68,37 @@ def get_bookmarks(userId):
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
+    
+@bookmarks_bp.route('/delete-bookmark', methods=['DELETE'])
+def delete_bookmark():
+    try:
+        data = request.json
+        userId = data['userId']
+        placeId = data['placeId']
+        bookmark_doc_ref = bookmarks_collection.document(userId)
+
+        # Validasi bahwa placeId harus berupa integer
+        if not isinstance(placeId, int):
+            return jsonify({"success": False, "message": "placeId must be an integer."}), 400
+
+        # Mendapatkan dokumen bookmark berdasarkan userId
+        bookmark_doc = bookmark_doc_ref.get()
+
+        if bookmark_doc.exists:
+            bookmark_data = bookmark_doc.to_dict()
+            placeIds = bookmark_data.get('placeId', [])
+
+            if placeId in placeIds:
+                placeIds.remove(placeId)
+                if placeIds:
+                    bookmark_doc_ref.update({'placeId': placeIds})
+                else:
+                    bookmark_doc_ref.delete()
+                return jsonify({"success": True, "message": "Bookmark deleted successfully."}), 200
+            else:
+                return jsonify({"success": False, "message": "PlaceId not found in bookmarks."}), 404
+        else:
+            return jsonify({"success": False, "message": "No bookmarks found for this user."}), 404
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
