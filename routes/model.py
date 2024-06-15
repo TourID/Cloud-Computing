@@ -46,7 +46,7 @@ def recommend():
     df_recommendations = df_all_user_place.sort_values(by='predicted_rating', ascending=False)
 
     # Get top 10 recommendations
-    top_recommendations = df_recommendations.head(10).to_dict(orient='records')
+    top_recommendations = df_recommendations.head(9).to_dict(orient='records')
 
     return jsonify(top_recommendations)
 

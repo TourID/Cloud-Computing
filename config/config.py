@@ -7,7 +7,7 @@ class Config:
     PROJECT = 'capstone-tourid'
     BUCKET_NAME = 'tourid-bucket'
     DATABASE = 'tourid'
-    MODEL_PATH = 'models/best_model.h5'
+    MODEL_PATH = 'models/best_model.keras'
     USER_ENCODING_PATH = 'models/user_to_user_encoded.pkl'
     PLACE_ENCODING_PATH = 'models/place_to_place_encoded.pkl'
     PLACE_DATA_PATH = 'models/place_data.csv'
