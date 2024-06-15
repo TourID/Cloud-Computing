@@ -46,6 +46,13 @@ def add_review():
         place_id = data['placeId']
         rating = data['rating']
         review_text = data['review']
+        
+        # Validasi bahwa placeId dan rating harus berupa integer
+        if not isinstance(place_id, int):
+            return jsonify({"success": False, "message": "placeId must be an integer."}), 400
+        if not isinstance(rating, int):
+            return jsonify({"success": False, "message": "rating must be an integer."}), 400
+        
         user_doc_ref = reviews_collection.document(user_id)
         new_user_doc = {'username': username}
         user_doc_ref.set(new_user_doc)
