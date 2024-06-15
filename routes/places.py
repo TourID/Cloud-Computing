@@ -27,7 +27,9 @@ def tourism_by_category(category):
         place_data_clean['New_Rating'] = place_data_clean['Place_Id'].apply(lambda pid: calculate_rating(get_reviews(int(pid))))
         # Sort places by new rating
         sorted_places = place_data_clean.sort_values(by='New_Rating', ascending=False)
-        for _, row in sorted_places.iterrows():
+        top_rated_places = sorted_places.head(25)
+        
+        for _, row in top_rated_places.iterrows():
             reviews_data = get_reviews(int(row['Place_Id']))
             rating = calculate_rating(reviews_data)
             
@@ -51,7 +53,7 @@ def tourism_by_category(category):
         category_places['New_Rating'] = category_places['Place_Id'].apply(lambda pid: calculate_rating(get_reviews(int(pid))))
         sorted_places = category_places.sort_values(by='New_Rating', ascending=False)
         
-        top_rated_places = sorted_places.head(20)
+        top_rated_places = sorted_places.head(15)
         for _, row in top_rated_places.iterrows():
             reviews_data = get_reviews(int(row['Place_Id']))
             rating = calculate_rating(reviews_data)
