@@ -11,6 +11,32 @@ place_data = pd.read_csv(Config.PLACE_DATA_PATH)
 
 config_instance = Config()
 
+def getPlace(id):
+    place = place_data[place_data['Place_Id'] == id]
+    if place.empty:
+        return {'error': 'Destination not found'}, 404
+
+    try:
+        reviews_data = get_reviews(id)
+        average_rating = calculate_rating(reviews_data)
+
+        blob_name = f"images/{place['Place_Name'].iloc[0]}.jpg"
+        # Replace with your actual bucket name
+        image_url = generate_signed_url(blob_name)
+        
+        place_info = {
+            'placeId': id,
+            'placeName': place['Place_Name'].iloc[0],
+            'city': place['City'].iloc[0],
+            'category': place['Category'].iloc[0],
+            'ratingLoc': average_rating,
+            'imageUrl': image_url
+        }
+        return place_info, 200
+
+    except Exception as e:
+        return {"success": False, "message": str(e)}, 400
+    
 @places_bp.route('/tourism/<category>', methods=['GET'])
 def tourism_by_category(category):
     categories = ['All', 'Budaya', 'Taman Hiburan', 'Cagar Alam', 'Bahari', 'Pusat Perbelanjaan', 'Ibadah']
