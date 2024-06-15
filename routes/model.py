@@ -1,12 +1,11 @@
 from flask import Blueprint, request, jsonify
 import numpy as np
-from models.encodings import user_to_user_encoded, place_to_place_encoded
 import pickle
-# import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.losses import MeanSquaredError
-from config.config import Config
 import pandas as pd
+from config.config import Config
+from routes.places import getPlace
 
 model_bp = Blueprint('model', __name__)
 
@@ -20,52 +19,55 @@ def load_encodings(path):
     with open(path, 'rb') as file:
         return pickle.load(file)
 
+# Load model and encodings
 model = load_model_locally()
 user_to_user_encoded = load_encodings(Config.USER_ENCODING_PATH)
 place_to_place_encoded = load_encodings(Config.PLACE_ENCODING_PATH)
 
+# Load the place data from the CSV file globally
+place_data_df = pd.read_csv(Config.PLACE_DATA_PATH)
+
 @model_bp.route('/recommend', methods=['POST'])
 def recommend():
     data = request.get_json()
-    num_users = data['num_users']
-    num_places = data['num_places']
+    user_id = data['user_id']
 
-    # Create DataFrame with all possible user-place pairs
-    all_users = np.array(list(user_to_user_encoded.values()))
+    # Ensure user_id exists in the encoded data
+    if user_id not in user_to_user_encoded:
+        return jsonify({'error': f'User ID {user_id} not found'}), 404
+
+    # Get user encoding
+    user_encoding = user_to_user_encoded[user_id]
+
+    # Create DataFrame with user and all place encodings
     all_places = np.array(list(place_to_place_encoded.values()))
-    all_user_place = np.array(np.meshgrid(all_users, all_places)).T.reshape(-1, 2)
-    df_all_user_place = pd.DataFrame(all_user_place, columns=['user', 'place'])
+    user_input = np.repeat(np.array([user_encoding]), len(all_places), axis=0)
 
-    # Predict ratings
-    predictions = model.predict([df_all_user_place['user'], df_all_user_place['place']])
+    # Predict ratings for all places
+    predictions = model.predict([user_input, all_places])
 
-    # Add predicted ratings to DataFrame
-    df_all_user_place['predicted_rating'] = predictions.flatten()
+    # Create DataFrame with predictions and place encodings
+    df_predictions = pd.DataFrame({
+        'place': list(place_to_place_encoded.keys()),
+        'predicted_rating': predictions.flatten()
+    })
 
-    # Sort DataFrame by predicted rating
-    df_recommendations = df_all_user_place.sort_values(by='predicted_rating', ascending=False)
+    # Sort by predicted rating and get top 10 recommendations
+    df_top_recommendations = df_predictions.sort_values(by='predicted_rating', ascending=False).head(9)
 
-    # Get top 10 recommendations
-    top_recommendations = df_recommendations.head(9).to_dict(orient='records')
+    # Fetch place details for each recommendation
+    detailed_recommendations = []
+    for _, row in df_top_recommendations.iterrows():
+        place_id = int(row['place'])  # Convert place_id to integer
+        
+        # Check if the place ID exists in the place data
+        if place_id not in place_data_df['Place_Id'].values:
+            continue
+        
+        place_info, status_code = getPlace(place_id)
+        if status_code == 200:
+            detailed_recommendations.append(place_info)
+        else:
+            detailed_recommendations.append({'error': f'Place ID {place_id} not found', 'placeId': place_id})
 
-    return jsonify(top_recommendations)
-
-# @predict_bp.route('/predict', methods=['POST'])
-# def predict():
-#     data = request.json
-#     user_id = data.get('user_id')
-#     place_id = data.get('place_id')
-
-#     user_encoded = user_to_user_encoded.get(user_id, None)
-#     place_encoded = place_to_place_encoded.get(place_id, None)
-
-#     if user_encoded is None or place_encoded is None:
-#         return jsonify({'error': 'User or Place not found'}), 400
-
-#     user_input = np.array([user_encoded]).reshape(1, -1)
-#     place_input = np.array([place_encoded]).reshape(1, -1)
-
-#     prediction = model.predict([user_input, place_input])
-#     rating = float(prediction[0][0])
-
-#     return jsonify({'rating': rating})
+    return jsonify(detailed_recommendations)
