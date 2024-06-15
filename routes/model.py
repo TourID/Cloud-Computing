@@ -74,3 +74,4 @@ def recommend():
                 detailed_recommendations.append({'error': f'Place ID {place_id} not found', 'placeId': place_id})
 
     return jsonify(detailed_recommendations)
+
