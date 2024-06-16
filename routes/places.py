@@ -39,7 +39,7 @@ def getPlace(id):
     
 @places_bp.route('/tourism/<category>', methods=['GET'])
 def tourism_by_category(category):
-    categories = ['All', 'Budaya', 'Taman Hiburan', 'Cagar Alam', 'Bahari', 'Pusat Perbelanjaan', 'Ibadah']
+    categories = ['All', 'Budaya', 'Taman Hiburan', 'Cagar Alam', 'Bahari', 'Pusat Perbelanjaan', 'Tempat Ibadah']
     if category not in categories:
         return jsonify({'error': 'Invalid category'}), 400
     
