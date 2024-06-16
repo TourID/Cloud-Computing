@@ -7,6 +7,8 @@ import pandas as pd
 from config.config import Config
 from routes.places import getPlace
 from routes.users import get_uid_model
+from routes.reviews import get_reviews,calculate_rating
+
 
 model_bp = Blueprint('model', __name__)
 
@@ -69,9 +71,16 @@ def recommend():
             
             place_info, status_code = getPlace(place_id)
             if status_code == 200:
+                # Fetch reviews data for the place from Firestore
+                reviews_data = get_reviews(place_id)
+                
+                # Calculate average rating using reviews_data
+                average_rating = calculate_rating(reviews_data)
+                
+                # Add average_rating to place_info
+                place_info['average_rating'] = average_rating
                 detailed_recommendations.append(place_info)
             else:
                 detailed_recommendations.append({'error': f'Place ID {place_id} not found', 'placeId': place_id})
 
     return jsonify(detailed_recommendations)
-
