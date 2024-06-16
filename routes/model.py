@@ -36,8 +36,8 @@ def recommend():
     data = request.get_json()
     userId = data['userId']
 
-    # new_user = get_all_users() #mengambil semua uid_model pada collection users pada firestore
-    new_rating = get_all_ratings(userId) #mengambil placeId, rating, dan uid_model pada collection /reviews/3MKkxwcSaYgtzsUrX9I5GwyzJtJ3/user_reviews/dq1GAD4iR7RnLszpOSn7
+    # new_user = get_all_users()
+    new_rating = get_all_ratings(userId)
     
     # Mengonversi data ke DataFrame
     # new_user_df = pd.DataFrame(new_user)
