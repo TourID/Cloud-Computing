@@ -6,6 +6,19 @@ users_bp = Blueprint('users', __name__)
 db = firestore.Client(project=Config.PROJECT, database=Config.DATABASE)
 users_collection = db.collection('users')
 
+def get_all_users():
+    docs = users_collection.stream()
+
+    # Ekstrak uid_model dari dokumen
+    users = []
+    for doc in docs:
+        user_data = doc.to_dict()
+        uid_model = user_data.get('uid_model')
+        if uid_model:
+            users.append({'User_Id' : uid_model})
+    
+    return users
+
 def get_uid_model(userId):
     try:
         if not userId:
