@@ -66,7 +66,7 @@ def add_user():
             'uid_model': new_uid_model
         })
 
-        return jsonify({'message': 'User created and data saved in Firestore'}), 201
+        return jsonify({'message': 'User successfully created and custom id saved'}), 201
     except Exception as e:
         return jsonify({'message': str(e)}), 400
 
