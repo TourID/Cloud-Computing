@@ -43,3 +43,25 @@ python -m venv your_venv_folder
   ```
   source your_venv_folder/bin/activate
 
+- Install dependencies
+```
+pip install -r requirements.txt
+```
+- Run the app
+```
+python3 app.py
+```
+
+## Deployment
+
+### Cloud Storage
+- Create a bucket
+  - Default class: Standard
+  - Enforce public access prevention
+  - Uniform access control enabled
+- The required outcomes is `BUCKET_NAME`
+
+### Secret Manager
+- Add secrets for your credentials
+- Refer to the image below for an example:
+![Secret Manager](assets/secret-manager.png)
