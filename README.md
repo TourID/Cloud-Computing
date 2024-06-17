@@ -63,6 +63,7 @@ python3 app.py
 
 ### Secret Manager
 - Add secrets for your credentials
+  <br>
   Refer to the image below for an example:
   <br>
 ![Secret Manager](assets/secret-manager.png)
@@ -77,6 +78,7 @@ python3 app.py
     - Custom Storage Object Creator
     - Firestore Service Agent
     - Secret Manager Secret Accessor
+    <br>
   Refer to the image below for an example
 ![Service Account](assets/service-acc-1.png)
 ![Service Account](assets/service-acc-2.png)
