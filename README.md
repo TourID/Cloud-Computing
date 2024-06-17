@@ -80,5 +80,6 @@ python3 app.py
     - Secret Manager Secret Accessor
     <br>
   Refer to the image below for an example
+   <br>
 ![Service Account](assets/service-acc-1.png)
 ![Service Account](assets/service-acc-2.png)
