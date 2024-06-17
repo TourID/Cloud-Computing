@@ -63,6 +63,20 @@ python3 app.py
 
 ### Secret Manager
 - Add secrets for your credentials
-- Refer to the image below for an example:
+  Refer to the image below for an example:
   <br>
 ![Secret Manager](assets/secret-manager.png)
+
+### Service Account
+- Create 2 new service accounts
+  - Cloud Run
+    - Cloud Run Invoker role
+  - TourID Cloud Run Services
+    - Cloud Datastore User
+    - Cloud Datastore Viewer
+    - Custom Storage Object Creator
+    - Firestore Service Agent
+    - Secret Manager Secret Accessor
+  Refer to the image below for an example
+![Service Account](assets/service-acc-1.png)
+![Service Account](assets/service-acc-2.png)
