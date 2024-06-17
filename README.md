@@ -34,6 +34,7 @@ python -m venv your_venv_folder
 ```
 
 - Activate your virtual environment
+  <br>
   Windows:
   ```
   .\your_venv_folder\Scripts\activate
