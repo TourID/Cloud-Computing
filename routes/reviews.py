@@ -98,8 +98,13 @@ def add_review():
         
         user_doc_ref = reviews_collection.document(user_id)
         new_user_doc = {'username': username}
-        user_doc_ref.set(new_user_doc)
+        user_doc_ref.set(new_user_doc, merge=True)
         user_reviews_subcollection = user_doc_ref.collection('user_reviews')
+        
+        #Cek apakah pengguna sudah mereview tempat ini
+        query = user_reviews_subcollection.where('placeId', '==', place_id).get()
+        if query:
+            return jsonify({"success": False, "message": "User has already reviewed this place."}), 400
         
         #GET UID MODEL
         uid_model, status_code = get_uid_model(user_id)
