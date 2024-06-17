@@ -21,6 +21,7 @@
 - [Cloud Computing Team](#cloud-computing-team)
 
 ## Architecture
+![Architecture](assets/architecture.png)
 
 ## Development
 - Clone this repository
@@ -53,6 +54,11 @@ python3 app.py
 ```
 
 ## Deployment
+
+### Firebase
+- Enable Firebase Authentication
+- Add Android app 
+- Generate Firebase Admin private key
 
 ### Cloud Storage
 - Create a bucket
