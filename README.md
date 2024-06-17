@@ -95,7 +95,15 @@ Submit a build using Google Cloud Build
 ## Project Structure
 ```
 ├── app.py
+├── .gitignore
+├── Dockerfile
+├── README.md
 ├── requirements.txt
+├── assets/
+│   ├── secret-manager.png
+│   ├── service-acc-1.png
+│   ├── service-acc-2.png
+│   └── tourid.png
 ├── config/
 │   ├── __init__.py
 │   ├── bucket-config.json
@@ -104,7 +112,7 @@ Submit a build using Google Cloud Build
 │   └── gcs.py
 ├── models/
 │   ├── __init__.py
-│   ├── best_model.h5
+│   ├── best_model.keras
 │   ├── encodings.py
 │   ├── model.py
 │   ├── place_data.csv
@@ -113,7 +121,8 @@ Submit a build using Google Cloud Build
 ├── myvenv/
 ├── routes/
 │   ├── __init__.py
-│   ├── predict.py
+│   ├── bookmarks.py
+│   ├── model.py
 │   ├── places.py
 │   ├── reviews.py
 │   └── users.py
