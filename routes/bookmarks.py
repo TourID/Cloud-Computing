@@ -42,12 +42,9 @@ def add_bookmark():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
     
-@bookmarks_bp.route('/get-bookmark', methods=['GET'])
-def get_bookmarks():
+@bookmarks_bp.route('/get-bookmark/<string:userId>', methods=['GET'])
+def get_bookmarks(userId):
     try:
-        data = request.get_json()
-        userId = data['userId']
-        
         if not userId:
             return jsonify({"success": False, "message": "userId is required"}), 400
         
