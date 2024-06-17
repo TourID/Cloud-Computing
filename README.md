@@ -64,4 +64,5 @@ python3 app.py
 ### Secret Manager
 - Add secrets for your credentials
 - Refer to the image below for an example:
+  <br>
 ![Secret Manager](assets/secret-manager.png)
